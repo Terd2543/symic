@@ -1,0 +1,20 @@
+window.onload = function() {
+    if (localStorage.getItem('isLoggedIn') !== 'true') {
+        window.location.href = 'login.html';
+    }
+
+    const userList = document.getElementById('userList');
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+
+    users.forEach(user => {
+        const userDiv = document.createElement('div');
+        userDiv.classList.add('user');
+        userDiv.innerHTML = `<p>ชื่อผู้ใช้: ${user.username}</p><p>อีเมล: ${user.email}</p>`;
+        userList.appendChild(userDiv);
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+        localStorage.removeItem('isLoggedIn');
+        window.location.href = 'login.html';
+    });
+};
