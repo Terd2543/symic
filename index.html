@@ -68,17 +68,32 @@
 </head>
 <body>
   <div class="container">
-    <h1>🚀 ตัวอย่างโค้ดภาษา C</h1>
+    <h1>🚀 หาค่าเฉลี่ย C</h1>
+    <button class="copy-btn" onclick="copyCode()">📋 Copy</button>
+    <pre><code id="c-code" class="language-c">
+#include &lt;stdio.h&gt;
+ลืมเดะลงให้
+    </code></pre>
+  </div>
+    <div class="container">
+    <h1>🚀 โค้ด แปลง นิ้วเป็นเซน C</h1>
     <button class="copy-btn" onclick="copyCode()">📋 Copy</button>
     <pre><code id="c-code" class="language-c">
 #include &lt;stdio.h&gt;
 
-int main() {
-    printf("สวัสดีครับ!\\n");
-    return 0;
+int main()
+{
+  float inch,cm;
+  printf("input inch for cm");
+  scanf("%f",&inch);
+  cm=inch*2.54;
+  printf("%.3f inch= %.3f cm",inch,cm);
+  return(0);
+ 
 }
     </code></pre>
   </div>
+
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
