@@ -2,14 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>🌈 Login + Tabs + Code Viewer</title>
+  <title>🌈 Login + Tabs</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Fira+Code&display=swap');
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -72,6 +70,7 @@
       justify-content: center;
       gap: 15px;
       margin-bottom: 20px;
+      flex-wrap: wrap;
     }
 
     .tab-btn {
@@ -100,16 +99,13 @@
       margin-top: 20px;
     }
 
-    img {
-      width: 100%;
-      margin-top: 20px;
-      border-radius: 10px;
-    }
+    ul { list-style: none; padding-left: 0; }
+    ul li::before { content: "🟢 "; }
   </style>
 </head>
 <body>
 
-  <!-- Login Section -->
+  <!-- Login -->
   <div class="box" id="loginBox">
     <h1>🔐 เข้าสู่ระบบ</h1>
     <input type="text" id="username" placeholder="ชื่อผู้ใช้...">
@@ -117,7 +113,7 @@
     <button onclick="login()">Login</button>
   </div>
 
-  <!-- Main App Section -->
+  <!-- Main -->
   <div class="box" id="mainApp" style="display:none;">
     <h1>🌈 ยินดีต้อนรับ!</h1>
 
@@ -125,10 +121,11 @@
       <button class="tab-btn active" onclick="showTab(0)">Home</button>
       <button class="tab-btn" onclick="showTab(1)">Code</button>
       <button class="tab-btn" onclick="showTab(2)">About</button>
+      <button class="tab-btn" onclick="showTab(3)">Account</button>
     </div>
 
     <div class="tab-content active">
-      <p>👋 สวัสดีคุณ <span id="userDisplay">User</span> ยินดีต้อนรับสู่เว็บตัวอย่าง!</p>
+      <p>👋 สวัสดีคุณ <span id="userDisplay">User</span> ยินดีต้อนรับ!</p>
     </div>
 
     <div class="tab-content">
@@ -161,13 +158,18 @@ int main()
   return 0;
 }
       </code></pre>
-
-      <h2>🧠 Flowchart</h2>
-      <img src="IMG_6551.PNG" alt="Flowchart นิ้วเป็นเซน">
     </div>
 
     <div class="tab-content">
-      <p>📚 เว็บไซต์นี้จัดทำเพื่อฝึกเขียน HTML + CSS + JS + C + เพื่อให้เพื่อนๆได้ศึกษาโค้ด เติ้ด1/10 ✨</p>
+      <p>📚 เว็บฝึก HTML + CSS + JS + C จัดทำโดย เติ้ด 1/10 ✨</p>
+    </div>
+
+    <div class="tab-content">
+      <h2>🔐 คุณล็อกอินเป็น: <span id="accountDisplay"></span></h2>
+      <div id="adminOnly" style="display:none;">
+        <h3>👥 ผู้ใช้ที่ออนไลน์:</h3>
+        <ul id="userList"></ul>
+      </div>
     </div>
   </div>
 
@@ -179,17 +181,29 @@ int main()
   <script>
     const users = {
       "admin": "1234",
-      
-      
+      "fame": "1111",
+      "terd": "0000"
     };
+
+    const activeUsers = [];
 
     function login() {
       const user = document.getElementById("username").value;
       const pass = document.getElementById("password").value;
+
       if (users[user] && users[user] === pass) {
         document.getElementById("loginBox").style.display = "none";
         document.getElementById("mainApp").style.display = "block";
         document.getElementById("userDisplay").textContent = user;
+        document.getElementById("accountDisplay").textContent = user;
+
+        if (!activeUsers.includes(user)) {
+          activeUsers.push(user);
+        }
+
+        if (user === "admin") {
+          showActiveUsers();
+        }
       } else {
         alert("ชื่อผู้ใช้หรือรหัสผ่านผิด ❌");
       }
@@ -200,6 +214,17 @@ int main()
       const buttons = document.querySelectorAll(".tab-btn");
       contents.forEach((el, i) => el.classList.toggle("active", i === index));
       buttons.forEach((el, i) => el.classList.toggle("active", i === index));
+    }
+
+    function showActiveUsers() {
+      const list = document.getElementById("userList");
+      list.innerHTML = "";
+      activeUsers.forEach(u => {
+        const li = document.createElement("li");
+        li.textContent = u;
+        list.appendChild(li);
+      });
+      document.getElementById("adminOnly").style.display = "block";
     }
   </script>
 </body>
