@@ -2,18 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>🌈 C Code Showcase</title>
+  <title>🌈 Login + Tabs + Code Viewer</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Fira+Code&display=swap');
 
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      padding: 30px;
       font-family: 'Fira Code', monospace;
       background: linear-gradient(270deg, #ff0080, #7928ca, #00c6ff, #ffcc70);
-      background-size: 200% 200%;
-      animation: rainbowFlow 10s ease infinite;
+      background-size: 400% 400%;
+      animation: rainbowFlow 20s ease infinite;
       color: white;
     }
 
@@ -23,54 +26,114 @@
       100% { background-position: 0% 50%; }
     }
 
-    .container {
+    .box {
       max-width: 900px;
-      margin: auto;
-      background: rgba(0, 0, 0, 0.8);
-      border-radius: 20px;
+      margin: 50px auto;
+      background: rgba(0, 0, 0, 0.85);
       padding: 30px;
-      box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
-      position: relative;
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
     }
 
     h1 {
       text-align: center;
-      font-size: 2.5em;
       margin-bottom: 20px;
-      text-shadow: 0 0 10px white;
+      text-shadow: 0 0 5px white;
+    }
+
+    input, button {
+      font-family: 'Fira Code', monospace;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+    }
+
+    input {
+      width: calc(100% - 20px);
+      margin: 10px 0;
+    }
+
+    button {
+      background: #00ffe1;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: white;
+      transform: scale(1.05);
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      background: #ffffff22;
+      color: white;
+    }
+
+    .tab-btn.active {
+      background: #00ffe1;
+      color: black;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
     }
 
     pre {
+      background: #272822;
+      padding: 20px;
       border-radius: 10px;
       overflow-x: auto;
-      font-size: 16px;
+      margin-top: 20px;
     }
 
-    .copy-btn {
-      position: absolute;
-      top: 20px;
-      right: 30px;
-      background: #00ffe1;
-      color: black;
-      border: none;
-      padding: 8px 15px;
-      font-weight: bold;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .copy-btn:hover {
-      background: white;
-      transform: scale(1.1);
+    img {
+      width: 100%;
+      margin-top: 20px;
+      border-radius: 10px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🚀 หาค่าเฉลี่ย C</h1>
-    <button class="copy-btn" onclick="copyCode()">📋 Copy</button>
-    <pre><code id="c-code" class="language-c">
+
+  <!-- Login Section -->
+  <div class="box" id="loginBox">
+    <h1>🔐 เข้าสู่ระบบ</h1>
+    <input type="text" id="username" placeholder="ชื่อผู้ใช้...">
+    <input type="password" id="password" placeholder="รหัสผ่าน...">
+    <button onclick="login()">Login</button>
+  </div>
+
+  <!-- Main App Section -->
+  <div class="box" id="mainApp" style="display:none;">
+    <h1>🌈 ยินดีต้อนรับ!</h1>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab(0)">Home</button>
+      <button class="tab-btn" onclick="showTab(1)">Code</button>
+      <button class="tab-btn" onclick="showTab(2)">About</button>
+    </div>
+
+    <div class="tab-content active">
+      <p>👋 สวัสดีคุณ <span id="userDisplay">User</span> ยินดีต้อนรับสู่เว็บตัวอย่าง!</p>
+    </div>
+
+    <div class="tab-content">
+      <h2>🚀 โค้ด: หาค่าเฉลี่ย</h2>
+      <pre><code class="language-c">
 #include &lt;stdio.h&gt;
 
 int main()
@@ -82,54 +145,62 @@ int main()
   avg = sum / 3;
   printf("Average is %f", avg);
 }
-    </code>//by terd1/10</pre>
-  </div>
-    <div class="container">
-    <h1>🚀 โค้ด แปลง นิ้วเป็นเซน C</h1>
-    <button class="copy-btn" onclick="copyCode()">📋 Copy</button>
-    <pre><code id="c1-code" class="language-c">
+      </code></pre>
+
+      <h2>📏 โค้ด: แปลงนิ้วเป็นเซนติเมตร</h2>
+      <pre><code class="language-c">
 #include &lt;stdio.h&gt;
 
 int main()
 {
-  float inch,cm;
+  float inch, cm;
   printf("input inch for cm");
-  scanf("%f",&inch);
-  cm=inch*2.54;
-  printf("%.3f inch= %.3f cm",inch,cm);
-  return(0);
- 
+  scanf("%f", &inch);
+  cm = inch * 2.54;
+  printf("%.3f inch = %.3f cm", inch, cm);
+  return 0;
 }
-    </code>//by terd1/10</pre>
-  </div>
+      </code></pre>
 
-    <div class="container">
-    <h1>🚀 flowrun แปลง นิ้ว เป็น เซนติเมตร</h1>
-    <button class="copy-btn" onclick="copyCode()">📋 Copy</button>
-    <pre><code id="c1-code" class="language-c">
-   
-    <div style="text-align: center;">
-      <img src="IMG_0001.jpg">
+      <h2>🧠 Flowchart</h2>
+      <img src="IMG_6551.PNG" alt="Flowchart นิ้วเป็นเซน">
     </div>
- </code></pre>
-  </div>
-  
-  
-  
-  
 
+    <div class="tab-content">
+      <p>📚 เว็บไซต์นี้จัดทำเพื่อฝึกเขียน HTML + CSS + JS + C + เพื่อให้เพื่อนๆได้ศึกษาโค้ด เติ้ด1/10 ✨</p>
+    </div>
+  </div>
+
+  <!-- Highlight.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
   <script>hljs.highlightAll();</script>
+
   <script>
-    function copyCode() {
-      const code = document.getElementById("c-code").innerText;
-      navigator.clipboard.writeText(code).then(() => {
-        alert("คัดลอกโค้ดเรียบร้อยแล้ว!");
-      });
+    const users = {
+      "admin": "1234",
+      
+      
+    };
+
+    function login() {
+      const user = document.getElementById("username").value;
+      const pass = document.getElementById("password").value;
+      if (users[user] && users[user] === pass) {
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("mainApp").style.display = "block";
+        document.getElementById("userDisplay").textContent = user;
+      } else {
+        alert("ชื่อผู้ใช้หรือรหัสผ่านผิด ❌");
+      }
     }
 
+    function showTab(index) {
+      const contents = document.querySelectorAll(".tab-content");
+      const buttons = document.querySelectorAll(".tab-btn");
+      contents.forEach((el, i) => el.classList.toggle("active", i === index));
+      buttons.forEach((el, i) => el.classList.toggle("active", i === index));
+    }
   </script>
 </body>
 </html>
-
