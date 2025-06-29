@@ -156,6 +156,12 @@ int main() {
       <h5>📋 รายชื่อผู้ใช้ทั้งหมด:</h5>
       <ul id="allUsersList"></ul>
     </div>
+
+    <div style="text-align:center; margin-top: 20px;">
+      <button onclick="logout()" style="background:#ff5555; color:white; font-weight:bold; padding:10px 20px; border-radius:8px; cursor:pointer;">
+        🔓 ออกจากระบบ
+      </button>
+    </div>
   </div>
 </div>
 
@@ -165,7 +171,7 @@ int main() {
 <script>hljs.highlightAll();</script>
 
 <script>
-  // ⛔ ใช้ Firebase project ของเฟม
+  // Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyD40kcFdCmRm6Zd_kTpU9lT1-HLmStzYhA",
     authDomain: "symic-d7196.firebaseapp.com",
@@ -180,15 +186,47 @@ int main() {
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
+  // รหัสผ่าน admin hardcode
+  const adminPassword = "pik";
+
   let currentUser = "";
   let userListCache = {};
 
-  function loadUsers() {
-    db.ref('users').once('value').then(snapshot => {
-      userListCache = snapshot.val() || {};
-    });
+  // เก็บข้อมูลล็อกอินใน localStorage
+  function saveLogin(user) {
+    const now = Date.now();
+    localStorage.setItem("loginUser", user);
+    localStorage.setItem("loginTime", now.toString());
+  }
 
+  // ลบข้อมูลล็อกอิน localStorage
+  function clearLogin() {
+    localStorage.removeItem("loginUser");
+    localStorage.removeItem("loginTime");
+  }
+
+  // โหลดข้อมูลล็อกอินจาก localStorage พร้อมเช็ค timeout 7 วัน (604800000 ms)
+  function checkLoginTimeout() {
+    const user = localStorage.getItem("loginUser");
+    const timeStr = localStorage.getItem("loginTime");
+    if (!user || !timeStr) return false;
+
+    const lastTime = parseInt(timeStr);
+    const now = Date.now();
+    if (now - lastTime > 7 * 24 * 60 * 60 * 1000) {
+      // เกิน 7 วัน ให้ logout
+      clearLogin();
+      return false;
+    }
+    // ยังไม่ timeout
+    return user;
+  }
+
+  // โหลด user list จาก Firebase และอัพเดต cache พร้อม UI
+  function loadUsers() {
     db.ref('users').on('value', snapshot => {
+      userListCache = snapshot.val() || {};
+
       const allList = document.getElementById("allUsersList");
       allList.innerHTML = "";
       snapshot.forEach(child => {
@@ -199,20 +237,82 @@ int main() {
     });
   }
 
-  function login() {
-    const user = document.getElementById("username").value;
-    const pass = document.getElementById("password").value;
+  // แสดงแท็บ
+  function showTab(index) {
+    const contents = document.querySelectorAll(".tab-content");
+    const buttons = document.querySelectorAll(".tab-btn");
+    contents.forEach((el, i) => el.classList.toggle("active", i === index));
+    buttons.forEach((el, i) => el.classList.toggle("active", i === index));
+  }
 
-    if (userListCache[user] && userListCache[user] === pass) {
-      currentUser = user;
+  // ฟังก์ชัน login
+  function login() {
+    const user = document.getElementById("username").value.trim();
+    const pass = document.getElementById("password").value.trim();
+
+    if (user === "admin" && pass === adminPassword) {
+      // login admin
+      afterLogin(user);
+    } else if (userListCache[user] && userListCache[user] === pass) {
+      // login user ปกติ
+      afterLogin(user);
+    } else {
+      alert("ชื่อผู้ใช้หรือรหัสผ่านผิด ❌");
+    }
+  }
+
+  // หลัง login สำเร็จ
+  function afterLogin(user) {
+    currentUser = user;
+    saveLogin(user);
+
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("mainApp").style.display = "block";
+    document.getElementById("userDisplay").textContent = user;
+    document.getElementById("accountDisplay").textContent = user;
+
+    db.ref('activeUsers/' + user).set(true);
+
+    if (user === "admin") {
+      db.ref('activeUsers').on('value', (snapshot) => {
+        const list = document.getElementById("userList");
+        list.innerHTML = "";
+        snapshot.forEach(child => {
+          const li = document.createElement("li");
+          li.textContent = child.key;
+          list.appendChild(li);
+        });
+      });
+      document.getElementById("adminOnly").style.display = "block";
+    }
+  }
+
+  // logout function (ลบ activeUser และ clear localStorage)
+  function logout() {
+    if (currentUser) {
+      db.ref('activeUsers/' + currentUser).remove();
+    }
+    currentUser = "";
+    clearLogin();
+    document.getElementById("loginBox").style.display = "block";
+    document.getElementById("mainApp").style.display = "none";
+  }
+
+  // โหลดสถานะล็อกอินจาก localStorage ตอนเปิดเว็บ
+  window.onload = function() {
+    loadUsers();
+
+    const loggedUser = checkLoginTimeout();
+    if (loggedUser) {
+      currentUser = loggedUser;
       document.getElementById("loginBox").style.display = "none";
       document.getElementById("mainApp").style.display = "block";
-      document.getElementById("userDisplay").textContent = user;
-      document.getElementById("accountDisplay").textContent = user;
+      document.getElementById("userDisplay").textContent = loggedUser;
+      document.getElementById("accountDisplay").textContent = loggedUser;
 
-      db.ref('activeUsers/' + user).set(true);
+      db.ref('activeUsers/' + loggedUser).set(true);
 
-      if (user === "admin") {
+      if (loggedUser === "admin") {
         db.ref('activeUsers').on('value', (snapshot) => {
           const list = document.getElementById("userList");
           list.innerHTML = "";
@@ -225,23 +325,18 @@ int main() {
         document.getElementById("adminOnly").style.display = "block";
       }
     } else {
-      alert("ชื่อผู้ใช้หรือรหัสผ่านผิด ❌");
+      clearLogin();
     }
-  }
+  };
 
-  function showTab(index) {
-    const contents = document.querySelectorAll(".tab-content");
-    const buttons = document.querySelectorAll(".tab-btn");
-    contents.forEach((el, i) => el.classList.toggle("active", i === index));
-    buttons.forEach((el, i) => el.classList.toggle("active", i === index));
-  }
-
+  // ตอนปิดเว็บ ลบ activeUser
   window.addEventListener('beforeunload', () => {
     if (currentUser) {
       db.ref('activeUsers/' + currentUser).remove();
     }
   });
 
+  // เพิ่มผู้ใช้ใหม่หรือแก้ไข
   function addUser() {
     const user = document.getElementById("newUser").value.trim();
     const pass = document.getElementById("newPass").value.trim();
@@ -249,21 +344,21 @@ int main() {
 
     db.ref('users/' + user).set(pass, () => {
       alert(`✔️ ผู้ใช้ "${user}" ถูกเพิ่ม/แก้ไขแล้ว`);
-      loadUsers();
+      // ไม่ต้องเรียก loadUsers() เพราะ on('value') จะอัพเดตอัตโนมัติ
     });
   }
 
+  // ลบผู้ใช้
   function deleteUser() {
     const user = document.getElementById("newUser").value.trim();
     if (!user) return alert("กรุณาใส่ชื่อผู้ใช้");
 
     db.ref('users/' + user).remove(() => {
       alert(`🗑️ ผู้ใช้ "${user}" ถูกลบแล้ว`);
-      loadUsers();
+      // ไม่ต้องเรียก loadUsers() เพราะ on('value') จะอัพเดตอัตโนมัติ
     });
   }
 
-  loadUsers();
 </script>
 
 </body>
