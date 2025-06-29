@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>🌈 Login + Tabs</title>
+  <title>🌈 Firebase Login Tracker</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Fira+Code&display=swap');
-
     * { box-sizing: border-box; }
 
     body {
@@ -83,13 +84,8 @@
       color: black;
     }
 
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
 
     pre {
       background: #272822;
@@ -105,127 +101,126 @@
 </head>
 <body>
 
-  <!-- Login -->
-  <div class="box" id="loginBox">
-    <h1>🔐 เข้าสู่ระบบ</h1>
-    <input type="text" id="username" placeholder="ชื่อผู้ใช้...">
-    <input type="password" id="password" placeholder="รหัสผ่าน...">
-    <button onclick="login()">Login</button>
+<div class="box" id="loginBox">
+  <h1>🔐 เข้าสู่ระบบ</h1>
+  <input type="text" id="username" placeholder="ชื่อผู้ใช้...">
+  <input type="password" id="password" placeholder="รหัสผ่าน...">
+  <button onclick="login()">Login</button>
+</div>
+
+<div class="box" id="mainApp" style="display:none;">
+  <h1>🌈 ยินดีต้อนรับ!</h1>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab(0)">Home</button>
+    <button class="tab-btn" onclick="showTab(1)">Code</button>
+    <button class="tab-btn" onclick="showTab(2)">About</button>
+    <button class="tab-btn" onclick="showTab(3)">Account</button>
   </div>
 
-  <!-- Main -->
-  <div class="box" id="mainApp" style="display:none;">
-    <h1>🌈 ยินดีต้อนรับ!</h1>
-
-    <div class="tabs">
-      <button class="tab-btn active" onclick="showTab(0)">Home</button>
-      <button class="tab-btn" onclick="showTab(1)">Code</button>
-      <button class="tab-btn" onclick="showTab(2)">About</button>
-      <button class="tab-btn" onclick="showTab(3)">Account</button>
-    </div>
-
-    <div class="tab-content active">
-      <p>👋 สวัสดีคุณ <span id="userDisplay">User</span> ยินดีต้อนรับ!</p>
-    </div>
-
-    <div class="tab-content">
-      <h2>🚀 โค้ด: หาค่าเฉลี่ย</h2>
-      <pre><code class="language-c">
-#include &lt;stdio.h&gt;
-
-int main()
-{
-  float num1, num2, num3, sum, avg;
-  printf("Enter three numbers for avg");
-  scanf("%f %f %f", &num1, &num2, &num3);
-  sum = num1 + num2 + num3;
-  avg = sum / 3;
-  printf("Average is %f", avg);
-}
-      </code></pre>
-
-      <h2>📏 โค้ด: แปลงนิ้วเป็นเซนติเมตร</h2>
-      <pre><code class="language-c">
-#include &lt;stdio.h&gt;
-
-int main()
-{
-  float inch, cm;
-  printf("input inch for cm");
-  scanf("%f", &inch);
-  cm = inch * 2.54;
-  printf("%.3f inch = %.3f cm", inch, cm);
-  return 0;
-}
-      </code></pre>
-    </div>
-
-    <div class="tab-content">
-      <p>📚 เว็บฝึก HTML + CSS + JS + C จัดทำโดย เติ้ด 1/10 ✨</p>
-    </div>
-
-    <div class="tab-content">
-      <h2>🔐 คุณล็อกอินเป็น: <span id="accountDisplay"></span></h2>
-      <div id="adminOnly" style="display:none;">
-        <h3>👥 ผู้ใช้ที่ออนไลน์:</h3>
-        <ul id="userList"></ul>
-      </div>
-    </div>
+  <div class="tab-content active">
+    <p>👋 สวัสดีคุณ <span id="userDisplay">User</span> ยินดีต้อนรับ!</p>
   </div>
 
-  <!-- Highlight.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
-  <script>hljs.highlightAll();</script>
+  <div class="tab-content">
+    <h2>🚀 โค้ด: หาค่าเฉลี่ย</h2>
+    <pre><code class="language-c">
+#include &lt;stdio.h&gt;
 
-  <script>
-    const users = {
-      "admin": "1234",
-      "fame": "1111",
-      "terd": "0000"
-    };
+int main() {
+  float a, b, c;
+  scanf("%f %f %f", &a, &b, &c);
+  printf("Avg = %.2f", (a + b + c) / 3);
+}
+    </code></pre>
+  </div>
 
-    const activeUsers = [];
+  <div class="tab-content">
+    <p>📚 สร้างเพื่อฝึก Firebase + HTML/JS/C ✨</p>
+  </div>
 
-    function login() {
-      const user = document.getElementById("username").value;
-      const pass = document.getElementById("password").value;
+  <div class="tab-content">
+    <h3>🔐 คุณล็อกอินเป็น: <span id="accountDisplay"></span></h3>
+    <div id="adminOnly" style="display:none;">
+      <h4>🟢 ผู้ใช้ที่ออนไลน์ตอนนี้:</h4>
+      <ul id="userList"></ul>
+    </div>
+  </div>
+</div>
 
-      if (users[user] && users[user] === pass) {
-        document.getElementById("loginBox").style.display = "none";
-        document.getElementById("mainApp").style.display = "block";
-        document.getElementById("userDisplay").textContent = user;
-        document.getElementById("accountDisplay").textContent = user;
+<!-- Highlight -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+<script>hljs.highlightAll();</script>
 
-        if (!activeUsers.includes(user)) {
-          activeUsers.push(user);
-        }
+<script>
+  // ⛔ ใส่ของจริงจาก Firebase ที่เฟมสร้างไว้
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyD40kcFdCmRm6Zd_kTpU9lT1-HLmStzYhA",
+  authDomain: "symic-d7196.firebaseapp.com",
+  databaseURL: "https://symic-d7196-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "symic-d7196",
+  storageBucket: "symic-d7196.firebasestorage.app",
+  messagingSenderId: "835880076541",
+  appId: "1:835880076541:web:4a6816fb52ff91ae1c2a94",
+  measurementId: "G-ZTTCB5YKFR"
+};
 
-        if (user === "admin") {
-          showActiveUsers();
-        }
-      } else {
-        alert("ชื่อผู้ใช้หรือรหัสผ่านผิด ❌");
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  const users = {
+    "admin": "1234",
+    "fame": "1111",
+    "terd": "0000"
+  };
+
+  let currentUser = "";
+
+  function login() {
+    const user = document.getElementById("username").value;
+    const pass = document.getElementById("password").value;
+
+    if (users[user] && users[user] === pass) {
+      currentUser = user;
+      document.getElementById("loginBox").style.display = "none";
+      document.getElementById("mainApp").style.display = "block";
+      document.getElementById("userDisplay").textContent = user;
+      document.getElementById("accountDisplay").textContent = user;
+
+      db.ref('activeUsers/' + user).set(true);
+
+      if (user === "admin") {
+        db.ref('activeUsers').on('value', (snapshot) => {
+          const list = document.getElementById("userList");
+          list.innerHTML = "";
+          snapshot.forEach(child => {
+            const li = document.createElement("li");
+            li.textContent = child.key;
+            list.appendChild(li);
+          });
+        });
+        document.getElementById("adminOnly").style.display = "block";
       }
+    } else {
+      alert("ชื่อผู้ใช้หรือรหัสผ่านผิด ❌");
     }
+  }
 
-    function showTab(index) {
-      const contents = document.querySelectorAll(".tab-content");
-      const buttons = document.querySelectorAll(".tab-btn");
-      contents.forEach((el, i) => el.classList.toggle("active", i === index));
-      buttons.forEach((el, i) => el.classList.toggle("active", i === index));
-    }
+  function showTab(index) {
+    const contents = document.querySelectorAll(".tab-content");
+    const buttons = document.querySelectorAll(".tab-btn");
+    contents.forEach((el, i) => el.classList.toggle("active", i === index));
+    buttons.forEach((el, i) => el.classList.toggle("active", i === index));
+  }
 
-    function showActiveUsers() {
-      const list = document.getElementById("userList");
-      list.innerHTML = "";
-      activeUsers.forEach(u => {
-        const li = document.createElement("li");
-        li.textContent = u;
-        list.appendChild(li);
-      });
-      document.getElementById("adminOnly").style.display = "block";
+  window.addEventListener('beforeunload', () => {
+    if (currentUser) {
+      db.ref('activeUsers/' + currentUser).remove();
     }
-  </script>
+  });
+</script>
+
 </body>
 </html>
