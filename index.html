@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>🌈 Firebase Login Tracker</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
   <style>
@@ -171,7 +171,6 @@ int main() {
 <script>hljs.highlightAll();</script>
 
 <script>
-  // Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyD40kcFdCmRm6Zd_kTpU9lT1-HLmStzYhA",
     authDomain: "symic-d7196.firebaseapp.com",
@@ -186,26 +185,21 @@ int main() {
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
-  // รหัสผ่าน admin hardcode
   const adminPassword = "pik";
-
   let currentUser = "";
   let userListCache = {};
 
-  // เก็บข้อมูลล็อกอินใน localStorage
   function saveLogin(user) {
     const now = Date.now();
     localStorage.setItem("loginUser", user);
     localStorage.setItem("loginTime", now.toString());
   }
 
-  // ลบข้อมูลล็อกอิน localStorage
   function clearLogin() {
     localStorage.removeItem("loginUser");
     localStorage.removeItem("loginTime");
   }
 
-  // โหลดข้อมูลล็อกอินจาก localStorage พร้อมเช็ค timeout 7 วัน (604800000 ms)
   function checkLoginTimeout() {
     const user = localStorage.getItem("loginUser");
     const timeStr = localStorage.getItem("loginTime");
@@ -214,21 +208,22 @@ int main() {
     const lastTime = parseInt(timeStr);
     const now = Date.now();
     if (now - lastTime > 7 * 24 * 60 * 60 * 1000) {
-      // เกิน 7 วัน ให้ logout
       clearLogin();
       return false;
     }
-    // ยังไม่ timeout
     return user;
   }
 
-  // โหลด user list จาก Firebase และอัพเดต cache พร้อม UI
+  // โหลดรายชื่อผู้ใช้และอัพเดต cache + UI ทันที
   function loadUsers() {
     db.ref('users').on('value', snapshot => {
       userListCache = snapshot.val() || {};
-
       const allList = document.getElementById("allUsersList");
       allList.innerHTML = "";
+      if (!snapshot.exists()) {
+        allList.innerHTML = "<li>ไม่มีผู้ใช้ในระบบ</li>";
+        return;
+      }
       snapshot.forEach(child => {
         const li = document.createElement("li");
         li.textContent = `${child.key} (${child.val()})`;
@@ -237,7 +232,6 @@ int main() {
     });
   }
 
-  // แสดงแท็บ
   function showTab(index) {
     const contents = document.querySelectorAll(".tab-content");
     const buttons = document.querySelectorAll(".tab-btn");
@@ -245,27 +239,22 @@ int main() {
     buttons.forEach((el, i) => el.classList.toggle("active", i === index));
   }
 
-  // ฟังก์ชัน login
   function login() {
     const user = document.getElementById("username").value.trim();
     const pass = document.getElementById("password").value.trim();
 
     if (user === "admin" && pass === adminPassword) {
-      // login admin
       afterLogin(user);
     } else if (userListCache[user] && userListCache[user] === pass) {
-      // login user ปกติ
       afterLogin(user);
     } else {
       alert("ชื่อผู้ใช้หรือรหัสผ่านผิด ❌");
     }
   }
 
-  // หลัง login สำเร็จ
   function afterLogin(user) {
     currentUser = user;
     saveLogin(user);
-
     document.getElementById("loginBox").style.display = "none";
     document.getElementById("mainApp").style.display = "block";
     document.getElementById("userDisplay").textContent = user;
@@ -274,7 +263,7 @@ int main() {
     db.ref('activeUsers/' + user).set(true);
 
     if (user === "admin") {
-      db.ref('activeUsers').on('value', (snapshot) => {
+      db.ref('activeUsers').on('value', snapshot => {
         const list = document.getElementById("userList");
         list.innerHTML = "";
         snapshot.forEach(child => {
@@ -287,7 +276,6 @@ int main() {
     }
   }
 
-  // logout function (ลบ activeUser และ clear localStorage)
   function logout() {
     if (currentUser) {
       db.ref('activeUsers/' + currentUser).remove();
@@ -298,45 +286,6 @@ int main() {
     document.getElementById("mainApp").style.display = "none";
   }
 
-  // โหลดสถานะล็อกอินจาก localStorage ตอนเปิดเว็บ
-  window.onload = function() {
-    loadUsers();
-
-    const loggedUser = checkLoginTimeout();
-    if (loggedUser) {
-      currentUser = loggedUser;
-      document.getElementById("loginBox").style.display = "none";
-      document.getElementById("mainApp").style.display = "block";
-      document.getElementById("userDisplay").textContent = loggedUser;
-      document.getElementById("accountDisplay").textContent = loggedUser;
-
-      db.ref('activeUsers/' + loggedUser).set(true);
-
-      if (loggedUser === "admin") {
-        db.ref('activeUsers').on('value', (snapshot) => {
-          const list = document.getElementById("userList");
-          list.innerHTML = "";
-          snapshot.forEach(child => {
-            const li = document.createElement("li");
-            li.textContent = child.key;
-            list.appendChild(li);
-          });
-        });
-        document.getElementById("adminOnly").style.display = "block";
-      }
-    } else {
-      clearLogin();
-    }
-  };
-
-  // ตอนปิดเว็บ ลบ activeUser
-  window.addEventListener('beforeunload', () => {
-    if (currentUser) {
-      db.ref('activeUsers/' + currentUser).remove();
-    }
-  });
-
-  // เพิ่มผู้ใช้ใหม่หรือแก้ไข
   function addUser() {
     const user = document.getElementById("newUser").value.trim();
     const pass = document.getElementById("newPass").value.trim();
@@ -344,21 +293,36 @@ int main() {
 
     db.ref('users/' + user).set(pass, () => {
       alert(`✔️ ผู้ใช้ "${user}" ถูกเพิ่ม/แก้ไขแล้ว`);
-      // ไม่ต้องเรียก loadUsers() เพราะ on('value') จะอัพเดตอัตโนมัติ
+      // on('value') จะอัพเดต UI อัตโนมัติ
     });
   }
 
-  // ลบผู้ใช้
   function deleteUser() {
     const user = document.getElementById("newUser").value.trim();
     if (!user) return alert("กรุณาใส่ชื่อผู้ใช้");
 
     db.ref('users/' + user).remove(() => {
       alert(`🗑️ ผู้ใช้ "${user}" ถูกลบแล้ว`);
-      // ไม่ต้องเรียก loadUsers() เพราะ on('value') จะอัพเดตอัตโนมัติ
+      // on('value') จะอัพเดต UI อัตโนมัติ
     });
   }
 
+  window.onload = () => {
+    loadUsers();
+
+    const loggedUser = checkLoginTimeout();
+    if (loggedUser) {
+      afterLogin(loggedUser);
+    } else {
+      clearLogin();
+    }
+  };
+
+  window.addEventListener('beforeunload', () => {
+    if (currentUser) {
+      db.ref('activeUsers/' + currentUser).remove();
+    }
+  });
 </script>
 
 </body>
