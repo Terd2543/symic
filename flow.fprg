@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<flowgorithm fileversion="4.2">
+    <attributes>
+        <attribute name="name" value="flow"/>
+        <attribute name="authors" value="8"/>
+        <attribute name="about" value=""/>
+        <attribute name="saved" value="2568-06-22 11:45:11 PM"/>
+        <attribute name="created" value="ODtERVNLVE9QLURVNklTSk47MjU2OC0wNi0xNjsxMjo1MjoxOSBBTTsyNDM3"/>
+        <attribute name="edited" value="ODtERVNLVE9QLURVNklTSk47MjU2OC0wNi0yMjsxMTo0NToxMSBQTTsyOzI1NTE="/>
+    </attributes>
+    <function name="Main" type="None" variable="">
+        <parameters/>
+        <body>
+            <declare name="n" type="String" array="False" size=""/>
+            <output expression="&quot;&#3585;&#3619;&#3640;&#3603;&#3634;&#3611;&#3657;&#3629;&#3609;&#3594;&#3639;&#3656;&#3629; &#3648;&#3614;&#3639;&#3656;&#3629;&#3648;&#3586;&#3657;&#3634;&#3626;&#3641;&#3656;&#3619;&#3632;&#3610;&#3610;&quot;" newline="True"/>
+            <input variable="n"/>
+            <output expression="&quot;&#3618;&#3636;&#3609;&#3604;&#3637;&#3605;&#3629;&#3609;&#3619;&#3633;&#3610; &quot; &amp; n &amp;&quot; &#3648;&#3586;&#3657;&#3634;&#3626;&#3641;&#3656;&#3619;&#3632;&#3610;&#3610;&quot;" newline="True"/>
+            <declare name="area" type="Integer" array="False" size=""/>
+            <declare name="a" type="Integer" array="False" size=""/>
+            <declare name="b" type="Integer" array="False" size=""/>
+            <output expression="&quot;&#3585;&#3619;&#3640;&#3603;&#3634;&#3585;&#3619;&#3629;&#3585;&#3588;&#3656;&#3634;&#3586;&#3629;&#3591; &#3600;&#3634;&#3609;&quot;" newline="True"/>
+            <input variable="a"/>
+            <output expression="&quot;&#3585;&#3619;&#3640;&#3603;&#3634;&#3585;&#3619;&#3629;&#3585;&#3588;&#3656;&#3634;&#3586;&#3629;&#3591; &#3588;&#3623;&#3634;&#3617;&#3626;&#3641;&#3591;&quot;" newline="True"/>
+            <input variable="b"/>
+            <output expression="&quot;&#3588;&#3656;&#3634;&#3586;&#3629;&#3591; &#3600;&#3634;&#3609; &#3588;&#3639;&#3629;&quot; &amp; a" newline="True"/>
+            <output expression="&quot;&#3588;&#3656;&#3634;&#3586;&#3629;&#3591; &#3588;&#3623;&#3634;&#3617;&#3626;&#3641;&#3591; &#3588;&#3639;&#3629;&quot; &amp; b" newline="True"/>
+            <output expression="&quot;&#3588;&#3661;&#3634;&#3605;&#3629;&#3610;&#3588;&#3639;&#3629;&quot;" newline="True"/>
+            <assign variable="area" expression="1/2*a*b"/>
+            <output expression="area" newline="True"/>
+        </body>
+    </function>
+</flowgorithm>
