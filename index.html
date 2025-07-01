@@ -2,14 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>🌈 Firebase Login Tracker + Kick by IP</title>
+  <title>🌈 Dashboard with Account Tab</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Fira+Code&display=swap');
     * { box-sizing: border-box; }
-
     body {
       margin: 0;
       font-family: 'Fira Code', monospace;
@@ -18,13 +17,11 @@
       animation: rainbowFlow 20s ease infinite;
       color: white;
     }
-
     @keyframes rainbowFlow {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-
     .box {
       max-width: 900px;
       margin: 50px auto;
@@ -33,7 +30,6 @@
       border-radius: 20px;
       box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
     }
-
     input, button {
       font-family: 'Fira Code', monospace;
       padding: 10px;
@@ -42,14 +38,12 @@
       font-size: 1em;
       margin: 5px 0;
     }
-
     button {
       background: #00ffe1;
       color: black;
       font-weight: bold;
       cursor: pointer;
     }
-
     .tabs {
       display: flex;
       justify-content: center;
@@ -57,20 +51,16 @@
       flex-wrap: wrap;
       margin-bottom: 20px;
     }
-
     .tab-btn {
       background: #ffffff22;
       color: white;
     }
-
     .tab-btn.active {
       background: #00ffe1;
       color: black;
     }
-
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-
     pre {
       background: #272822;
       padding: 20px;
@@ -78,11 +68,8 @@
       overflow-x: auto;
       margin-top: 20px;
     }
-
     ul { list-style: none; padding-left: 0; }
     ul li::before { content: "🟢 "; }
-
-    /* เพิ่ม style ปุ่มเตะ */
     #kickIP { width: 200px; margin-right: 10px; }
   </style>
 </head>
@@ -102,7 +89,7 @@
     <button class="tab-btn active" onclick="showTab(0)">Home</button>
     <button class="tab-btn" onclick="showTab(1)">Code</button>
     <button class="tab-btn" onclick="showTab(2)">About</button>
-    <button class="tab-btn" onclick="showTab(3)">Admin</button>
+    <button class="tab-btn" onclick="showTab(3)">Account</button>
   </div>
 
   <div class="tab-content active">
@@ -127,7 +114,7 @@ int main() {
   </div>
 
   <div class="tab-content">
-    <div id="adminOnly" style="display:none;">
+    <div id="accountTab" style="display:none;">
       <h4>🧠 ผู้ใช้ที่ออนไลน์ (ชื่อ • IP • อุปกรณ์)</h4>
       <ul id="userList"></ul>
 
@@ -140,9 +127,6 @@ int main() {
       <input id="newPass" placeholder="รหัสผ่าน" autocomplete="off"/>
       <button onclick="addUser()">➕ เพิ่ม/แก้ไข</button>
       <button onclick="deleteUser()">🗑 ลบ</button>
-
-      <h4>📋 รายชื่อผู้ใช้ทั้งหมด</h4>
-      <ul id="allUsersList"></ul>
     </div>
 
     <button onclick="logout()" style="margin-top:20px; background:#ff4444; color:white;">ออกจากระบบ</button>
@@ -210,7 +194,6 @@ int main() {
     localStorage.setItem("sessionUser", user);
     localStorage.setItem("sessionTime", Date.now().toString());
 
-    // บันทึกสถานะ active user
     db.ref("activeUsers/" + sanitizeKey(user)).set({
       ip: currentIP,
       ua: currentUA,
@@ -222,12 +205,15 @@ int main() {
     document.getElementById("loginBox").style.display = "none";
     document.getElementById("mainApp").style.display = "block";
 
+    // แสดง tab Account เฉพาะ admin รหัส pik
     if (pass === ADMIN_PASS) {
-      document.getElementById("adminOnly").style.display = "block";
-      loadAdminData();
+      document.getElementById("accountTab").style.display = "block";
+      loadAccountData();
+    } else {
+      document.getElementById("accountTab").style.display = "none";
     }
 
-    // เช็ค kicked
+    // ฟัง kicked event
     db.ref("activeUsers/" + sanitizeKey(user) + "/kicked").on("value", snap => {
       if (snap.val() === true) {
         alert("คุณถูกเตะออก!");
@@ -258,6 +244,7 @@ int main() {
     if (!user || !pass) return alert("กรอกข้อมูลให้ครบ");
     db.ref("users/" + sanitizeKey(user)).set(pass);
     alert("บันทึกเรียบร้อย");
+    loadAccountData();
   }
 
   function deleteUser() {
@@ -265,9 +252,10 @@ int main() {
     if (!user) return alert("ใส่ชื่อผู้ใช้ที่ต้องการลบ");
     db.ref("users/" + sanitizeKey(user)).remove();
     alert("ลบเรียบร้อย");
+    loadAccountData();
   }
 
-  function loadAdminData() {
+  function loadAccountData() {
     // โหลดผู้ใช้ออนไลน์
     db.ref("activeUsers").on("value", snap => {
       const ul = document.getElementById("userList");
@@ -279,12 +267,8 @@ int main() {
     });
 
     // โหลดผู้ใช้ทั้งหมด
-    db.ref("users").on("value", snap => {
-      const ul = document.getElementById("allUsersList");
-      ul.innerHTML = "";
-      snap.forEach(child => {
-        ul.innerHTML += `<li>${child.key}</li>`;
-      });
+    db.ref("users").once("value", snap => {
+      // อัปเดตรายชื่อผู้ใช้ในระบบ (ถ้าจะใช้ที่อื่นเพิ่มเติม)
     });
   }
 
@@ -311,8 +295,8 @@ int main() {
     const time = parseInt(localStorage.getItem("sessionTime") || "0");
     if (user && Date.now() - time <= SESSION_MAX) {
       document.getElementById("username").value = user;
-      // password ไม่เก็บ localStorage เพราะเซฟรหัสผ่านไม่ได้ใน DB เลยต้องกรอกใหม่
-      await login();
+      // ไม่ auto login เพื่อความปลอดภัย ให้กรอกรหัสผ่านใหม่
+      // ถ้าจะ auto login ต้องเก็บรหัสผ่านใน localStorage เพิ่ม (ไม่แนะนำ)
     }
   };
 
