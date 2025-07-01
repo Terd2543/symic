@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>🌈 Dashboard with Account Tab</title>
+  <title>🌈 Dashboard with Auto-login & Account Tab</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
@@ -127,6 +127,14 @@ int main() {
       <input id="newPass" placeholder="รหัสผ่าน" autocomplete="off"/>
       <button onclick="addUser()">➕ เพิ่ม/แก้ไข</button>
       <button onclick="deleteUser()">🗑 ลบ</button>
+
+      <h4 style="margin-top: 20px;">
+        👁️ รายชื่อผู้ใช้ทั้งหมด
+        <button id="togglePassBtn" onclick="togglePasswordVisibility()" style="margin-left:10px; font-size:0.9em;">
+          แสดงรหัส
+        </button>
+      </h4>
+      <ul id="allUsersList"></ul>
     </div>
 
     <button onclick="logout()" style="margin-top:20px; background:#ff4444; color:white;">ออกจากระบบ</button>
@@ -157,6 +165,7 @@ int main() {
   let currentUser = null;
   let currentIP = null;
   let currentUA = null;
+  let showPasswords = false;
 
   async function getIP() {
     try {
@@ -205,7 +214,6 @@ int main() {
     document.getElementById("loginBox").style.display = "none";
     document.getElementById("mainApp").style.display = "block";
 
-    // แสดง tab Account เฉพาะ admin รหัส pik
     if (pass === ADMIN_PASS) {
       document.getElementById("accountTab").style.display = "block";
       loadAccountData();
@@ -213,7 +221,6 @@ int main() {
       document.getElementById("accountTab").style.display = "none";
     }
 
-    // ฟัง kicked event
     db.ref("activeUsers/" + sanitizeKey(user) + "/kicked").on("value", snap => {
       if (snap.val() === true) {
         alert("คุณถูกเตะออก!");
@@ -266,10 +273,23 @@ int main() {
       });
     });
 
-    // โหลดผู้ใช้ทั้งหมด
-    db.ref("users").once("value", snap => {
-      // อัปเดตรายชื่อผู้ใช้ในระบบ (ถ้าจะใช้ที่อื่นเพิ่มเติม)
+    // โหลดผู้ใช้ทั้งหมด (ชื่อและรหัส)
+    db.ref("users").on("value", snap => {
+      const ul = document.getElementById("allUsersList");
+      ul.innerHTML = "";
+      snap.forEach(child => {
+        const user = child.key;
+        const pass = child.val();
+        ul.innerHTML += `<li>${user} • <span class="passField">${showPasswords ? pass : '••••••'}</span></li>`;
+      });
     });
+  }
+
+  function togglePasswordVisibility() {
+    showPasswords = !showPasswords;
+    const btn = document.getElementById("togglePassBtn");
+    btn.textContent = showPasswords ? "ซ่อนรหัส" : "แสดงรหัส";
+    loadAccountData();
   }
 
   function kickByIP() {
@@ -295,8 +315,11 @@ int main() {
     const time = parseInt(localStorage.getItem("sessionTime") || "0");
     if (user && Date.now() - time <= SESSION_MAX) {
       document.getElementById("username").value = user;
-      // ไม่ auto login เพื่อความปลอดภัย ให้กรอกรหัสผ่านใหม่
-      // ถ้าจะ auto login ต้องเก็บรหัสผ่านใน localStorage เพิ่ม (ไม่แนะนำ)
+      const snap = await db.ref("users/" + sanitizeKey(user)).get();
+      if (snap.exists()) {
+        document.getElementById("password").value = snap.val();
+        login();
+      }
     }
   };
 
