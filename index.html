@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>🌈 Dashboard with IP Ban System</title>
+  <title>🌈 Dashboard with IP Ban and Kick (Exclude Admin)</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
@@ -201,7 +201,6 @@ int main() {
     return str.replace(/[.#$[\]]/g, "_");
   }
 
-  // เช็คว่า IP แบนอยู่ไหม
   async function isIPBanned(ip) {
     const snap = await db.ref("bannedIPs/" + sanitizeKey(ip)).get();
     return snap.exists();
@@ -288,7 +287,6 @@ int main() {
   }
 
   function loadAccountData() {
-    // โหลดผู้ใช้ออนไลน์
     db.ref("activeUsers").on("value", snap => {
       const ul = document.getElementById("userList");
       ul.innerHTML = "";
@@ -298,7 +296,6 @@ int main() {
       });
     });
 
-    // โหลดผู้ใช้ทั้งหมด (ชื่อและรหัส)
     db.ref("users").on("value", snap => {
       const ul = document.getElementById("allUsersList");
       ul.innerHTML = "";
@@ -317,29 +314,59 @@ int main() {
     loadAccountData();
   }
 
-  function kickByIP() {
+  async function kickByIP() {
     const ip = document.getElementById("kickIP").value.trim();
     if (!ip) return alert("ใส่ IP");
 
-    db.ref("activeUsers").once("value", snap => {
-      let kickedCount = 0;
-      snap.forEach(child => {
-        const v = child.val();
-        if (v.ip === ip) {
-          db.ref("activeUsers/" + child.key + "/kicked").set(true);
-          kickedCount++;
+    const snap = await db.ref("activeUsers").once("value");
+    const activeUsers = snap.val() || {};
+    let kickedCount = 0;
+
+    for (const [userKey, v] of Object.entries(activeUsers)) {
+      if (v.ip === ip) {
+        const userPassSnap = await db.ref("users/" + sanitizeKey(userKey)).get();
+        if (userPassSnap.exists() && userPassSnap.val() === ADMIN_PASS) {
+          alert(`ไม่สามารถเตะ admin: ${userKey} ได้`);
+          continue; // ข้าม admin
         }
-      });
-      if (kickedCount > 0) alert(`เตะผู้ใช้ที่ IP ${ip} สำเร็จ!`);
-      else alert(`ไม่พบผู้ใช้ที่ IP ${ip}`);
-    });
+        await db.ref("activeUsers/" + userKey + "/kicked").set(true);
+        kickedCount++;
+      }
+    }
+
+    if (kickedCount > 0) alert(`เตะผู้ใช้ที่ IP ${ip} สำเร็จ!`);
+    else alert(`ไม่พบผู้ใช้ที่ IP ${ip}`);
   }
 
   function banIP() {
     const ip = document.getElementById("banIPInput").value.trim();
     if (!ip) return alert("ใส่ IP ที่จะแบน");
-    db.ref("bannedIPs/" + sanitizeKey(ip)).set(true)
-      .then(() => alert(`แบน IP ${ip} เรียบร้อย`));
+
+    // เช็คว่า IP ที่จะบล็อกนี้เป็นของ admin หรือไม่
+    db.ref("users").once("value").then(usersSnap => {
+      const users = usersSnap.val() || {};
+      let isAdminIP = false;
+
+      // วนเช็ค IP ของ admin
+      db.ref("activeUsers").once("value").then(activeSnap => {
+        const activeUsers = activeSnap.val() || {};
+        for (const [userKey, val] of Object.entries(activeUsers)) {
+          if (val.ip === ip) {
+            if (users[userKey] === ADMIN_PASS) {
+              isAdminIP = true;
+              break;
+            }
+          }
+        }
+        if (isAdminIP) {
+          alert("ไม่สามารถแบน IP ของ admin ได้");
+          return;
+        } else {
+          db.ref("bannedIPs/" + sanitizeKey(ip)).set(true)
+            .then(() => alert(`แบน IP ${ip} เรียบร้อย`));
+        }
+      });
+    });
   }
 
   function unbanIP() {
@@ -355,10 +382,8 @@ int main() {
     if (user && Date.now() - time <= SESSION_MAX) {
       document.getElementById("username").value = user;
       const snap = await db.ref("users/" + sanitizeKey(user)).get();
-      if (snap.exists()) {
-        document.getElementById("password").value = snap.val();
-        login();
-      }
+      document.getElementById("password").value = snap.val() || "";
+      login();
     }
   };
 
