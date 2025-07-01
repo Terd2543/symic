@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>🌈 Firebase Login Tracker</title>
+  <title>🌈 Firebase Login Tracker + Kick by IP</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
@@ -34,12 +34,6 @@
       box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
     }
 
-    h1, h2, h3, h4, h5 {
-      text-align: center;
-      margin-bottom: 20px;
-      text-shadow: 0 0 5px white;
-    }
-
     input, button {
       font-family: 'Fira Code', monospace;
       padding: 10px;
@@ -49,30 +43,19 @@
       margin: 5px 0;
     }
 
-    input {
-      width: calc(100% - 20px);
-    }
-
     button {
       background: #00ffe1;
       color: black;
       font-weight: bold;
       cursor: pointer;
-      transition: 0.3s;
-      margin-right: 10px;
-    }
-
-    button:hover {
-      background: white;
-      transform: scale(1.05);
     }
 
     .tabs {
       display: flex;
       justify-content: center;
-      gap: 15px;
-      margin-bottom: 20px;
+      gap: 10px;
       flex-wrap: wrap;
+      margin-bottom: 20px;
     }
 
     .tab-btn {
@@ -98,33 +81,36 @@
 
     ul { list-style: none; padding-left: 0; }
     ul li::before { content: "🟢 "; }
+
+    /* เพิ่ม style ปุ่มเตะ */
+    #kickIP { width: 200px; margin-right: 10px; }
   </style>
 </head>
 <body>
 
 <div class="box" id="loginBox">
-  <h1>🔐 เข้าสู่ระบบ</h1>
-  <input type="text" id="username" placeholder="ชื่อผู้ใช้...">
-  <input type="password" id="password" placeholder="รหัสผ่าน...">
+  <h2>🔐 เข้าสู่ระบบ</h2>
+  <input type="text" id="username" placeholder="ชื่อผู้ใช้" autocomplete="off" />
+  <input type="password" id="password" placeholder="รหัสผ่าน" autocomplete="off" />
   <button onclick="login()">Login</button>
 </div>
 
 <div class="box" id="mainApp" style="display:none;">
-  <h1>🌈 ยินดีต้อนรับ!</h1>
+  <h2>🌈 ยินดีต้อนรับ <span id="userDisplay"></span></h2>
 
   <div class="tabs">
     <button class="tab-btn active" onclick="showTab(0)">Home</button>
     <button class="tab-btn" onclick="showTab(1)">Code</button>
     <button class="tab-btn" onclick="showTab(2)">About</button>
-    <button class="tab-btn" onclick="showTab(3)">Account</button>
+    <button class="tab-btn" onclick="showTab(3)">Admin</button>
   </div>
 
   <div class="tab-content active">
-    <p>👋 สวัสดีคุณ <span id="userDisplay">User</span> ยินดีต้อนรับ!</p>
+    <p>👋 สวัสดีผู้ใช้</p>
   </div>
 
   <div class="tab-content">
-    <h2>🚀 โค้ด: หาค่าเฉลี่ย</h2>
+    <h3>🚀 โค้ด C: หาค่าเฉลี่ย</h3>
     <pre><code class="language-c">
 #include &lt;stdio.h&gt;
 
@@ -137,35 +123,32 @@ int main() {
   </div>
 
   <div class="tab-content">
-    <p>📚 สร้างเพื่อฝึก Firebase + HTML/JS/C ✨</p>
+    <p>📚 สร้างโดย เติ้ด1/10 เพื่อฝึกทำเว็บ ✨</p>
   </div>
 
   <div class="tab-content">
-    <h3>🔐 คุณล็อกอินเป็น: <span id="accountDisplay"></span></h3>
-
     <div id="adminOnly" style="display:none;">
-      <h4>🟢 ผู้ใช้ที่ออนไลน์ตอนนี้:</h4>
+      <h4>🧠 ผู้ใช้ที่ออนไลน์ (ชื่อ • IP • อุปกรณ์)</h4>
       <ul id="userList"></ul>
 
-      <h4>🛠️ จัดการบัญชีผู้ใช้:</h4>
-      <input id="newUser" placeholder="ชื่อผู้ใช้">
-      <input id="newPass" placeholder="รหัสผ่าน">
-      <button onclick="addUser()">➕ เพิ่ม/แก้ไข</button>
-      <button onclick="deleteUser()">🗑️ ลบ</button>
+      <h4>🦶 เตะผู้ใช้โดย IP:</h4>
+      <input id="kickIP" placeholder="ใส่ IP เช่น 1.2.3.4" />
+      <button onclick="kickByIP()">เตะ!</button>
 
-      <h5>📋 รายชื่อผู้ใช้ทั้งหมด:</h5>
+      <h4>🛠 จัดการรหัสผู้ใช้</h4>
+      <input id="newUser" placeholder="ชื่อผู้ใช้" autocomplete="off"/>
+      <input id="newPass" placeholder="รหัสผ่าน" autocomplete="off"/>
+      <button onclick="addUser()">➕ เพิ่ม/แก้ไข</button>
+      <button onclick="deleteUser()">🗑 ลบ</button>
+
+      <h4>📋 รายชื่อผู้ใช้ทั้งหมด</h4>
       <ul id="allUsersList"></ul>
     </div>
 
-    <div style="text-align:center; margin-top: 20px;">
-      <button onclick="logout()" style="background:#ff5555; color:white; font-weight:bold; padding:10px 20px; border-radius:8px; cursor:pointer;">
-        🔓 ออกจากระบบ
-      </button>
-    </div>
+    <button onclick="logout()" style="margin-top:20px; background:#ff4444; color:white;">ออกจากระบบ</button>
   </div>
 </div>
 
-<!-- Highlight.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
 <script>hljs.highlightAll();</script>
@@ -178,149 +161,164 @@ int main() {
     projectId: "symic-d7196",
     storageBucket: "symic-d7196.appspot.com",
     messagingSenderId: "835880076541",
-    appId: "1:835880076541:web:4a6816fb52ff91ae1c2a94",
-    measurementId: "G-ZTTCB5YKFR"
+    appId: "1:835880076541:web:4a6816fb52ff91ae1c2a94"
   };
 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
-  const adminPassword = "pik";
-  let currentUser = "";
-  let userListCache = {};
+  const ADMIN_PASS = "pik";
+  const SESSION_MAX = 15 * 24 * 60 * 60 * 1000;
 
-  function saveLogin(user) {
-    const now = Date.now();
-    localStorage.setItem("loginUser", user);
-    localStorage.setItem("loginTime", now.toString());
-  }
+  let currentUser = null;
+  let currentIP = null;
+  let currentUA = null;
 
-  function clearLogin() {
-    localStorage.removeItem("loginUser");
-    localStorage.removeItem("loginTime");
-  }
-
-  function checkLoginTimeout() {
-    const user = localStorage.getItem("loginUser");
-    const timeStr = localStorage.getItem("loginTime");
-    if (!user || !timeStr) return false;
-
-    const lastTime = parseInt(timeStr);
-    const now = Date.now();
-    if (now - lastTime > 7 * 24 * 60 * 60 * 1000) {
-      clearLogin();
-      return false;
+  async function getIP() {
+    try {
+      const res = await fetch("https://www.cloudflare.com/cdn-cgi/trace");
+      const text = await res.text();
+      return text.match(/ip=([^\n]+)/)?.[1] || "unknown";
+    } catch {
+      return "unknown";
     }
-    return user;
   }
 
-  // โหลดรายชื่อผู้ใช้และอัพเดต cache + UI ทันที
-  function loadUsers() {
-    db.ref('users').on('value', snapshot => {
-      userListCache = snapshot.val() || {};
-      const allList = document.getElementById("allUsersList");
-      allList.innerHTML = "";
-      if (!snapshot.exists()) {
-        allList.innerHTML = "<li>ไม่มีผู้ใช้ในระบบ</li>";
-        return;
-      }
-      snapshot.forEach(child => {
-        const li = document.createElement("li");
-        li.textContent = `${child.key} (${child.val()})`;
-        allList.appendChild(li);
-      });
-    });
+  function detectUA() {
+    const ua = navigator.userAgent;
+    if (/\b(iPhone)\b/i.test(ua)) return "iPhone";
+    if (/\b(Android)\b/i.test(ua)) return "Android";
+    return ua;
   }
 
-  function showTab(index) {
-    const contents = document.querySelectorAll(".tab-content");
-    const buttons = document.querySelectorAll(".tab-btn");
-    contents.forEach((el, i) => el.classList.toggle("active", i === index));
-    buttons.forEach((el, i) => el.classList.toggle("active", i === index));
+  function sanitizeKey(str) {
+    return str.replace(/[.#$[\]]/g, "_");
   }
 
-  function login() {
+  async function login() {
     const user = document.getElementById("username").value.trim();
     const pass = document.getElementById("password").value.trim();
+    if (!user || !pass) return alert("กรอกชื่อผู้ใช้และรหัส");
 
-    if (user === "admin" && pass === adminPassword) {
-      afterLogin(user);
-    } else if (userListCache[user] && userListCache[user] === pass) {
-      afterLogin(user);
-    } else {
-      alert("ชื่อผู้ใช้หรือรหัสผ่านผิด ❌");
-    }
-  }
+    const snap = await db.ref("users/" + sanitizeKey(user)).get();
+    if (!snap.exists() || snap.val() !== pass) return alert("ชื่อผู้ใช้หรือรหัสผ่านผิด");
 
-  function afterLogin(user) {
     currentUser = user;
-    saveLogin(user);
+    currentIP = await getIP();
+    currentUA = detectUA();
+
+    localStorage.setItem("sessionUser", user);
+    localStorage.setItem("sessionTime", Date.now().toString());
+
+    // บันทึกสถานะ active user
+    db.ref("activeUsers/" + sanitizeKey(user)).set({
+      ip: currentIP,
+      ua: currentUA,
+      time: Date.now(),
+      kicked: false
+    });
+
+    document.getElementById("userDisplay").textContent = user;
     document.getElementById("loginBox").style.display = "none";
     document.getElementById("mainApp").style.display = "block";
-    document.getElementById("userDisplay").textContent = user;
-    document.getElementById("accountDisplay").textContent = user;
 
-    db.ref('activeUsers/' + user).set(true);
-
-    if (user === "admin") {
-      db.ref('activeUsers').on('value', snapshot => {
-        const list = document.getElementById("userList");
-        list.innerHTML = "";
-        snapshot.forEach(child => {
-          const li = document.createElement("li");
-          li.textContent = child.key;
-          list.appendChild(li);
-        });
-      });
+    if (pass === ADMIN_PASS) {
       document.getElementById("adminOnly").style.display = "block";
+      loadAdminData();
     }
+
+    // เช็ค kicked
+    db.ref("activeUsers/" + sanitizeKey(user) + "/kicked").on("value", snap => {
+      if (snap.val() === true) {
+        alert("คุณถูกเตะออก!");
+        logout();
+      }
+    });
   }
 
   function logout() {
     if (currentUser) {
-      db.ref('activeUsers/' + currentUser).remove();
+      db.ref("activeUsers/" + sanitizeKey(currentUser)).remove();
+      currentUser = null;
+      localStorage.removeItem("sessionUser");
+      localStorage.removeItem("sessionTime");
     }
-    currentUser = "";
-    clearLogin();
-    document.getElementById("loginBox").style.display = "block";
     document.getElementById("mainApp").style.display = "none";
+    document.getElementById("loginBox").style.display = "block";
+  }
+
+  function showTab(i) {
+    document.querySelectorAll(".tab-content").forEach((e, j) => e.classList.toggle("active", i === j));
+    document.querySelectorAll(".tab-btn").forEach((e, j) => e.classList.toggle("active", i === j));
   }
 
   function addUser() {
     const user = document.getElementById("newUser").value.trim();
     const pass = document.getElementById("newPass").value.trim();
-    if (!user || !pass) return alert("กรุณาใส่ชื่อผู้ใช้และรหัส");
-
-    db.ref('users/' + user).set(pass, () => {
-      alert(`✔️ ผู้ใช้ "${user}" ถูกเพิ่ม/แก้ไขแล้ว`);
-      // on('value') จะอัพเดต UI อัตโนมัติ
-    });
+    if (!user || !pass) return alert("กรอกข้อมูลให้ครบ");
+    db.ref("users/" + sanitizeKey(user)).set(pass);
+    alert("บันทึกเรียบร้อย");
   }
 
   function deleteUser() {
     const user = document.getElementById("newUser").value.trim();
-    if (!user) return alert("กรุณาใส่ชื่อผู้ใช้");
+    if (!user) return alert("ใส่ชื่อผู้ใช้ที่ต้องการลบ");
+    db.ref("users/" + sanitizeKey(user)).remove();
+    alert("ลบเรียบร้อย");
+  }
 
-    db.ref('users/' + user).remove(() => {
-      alert(`🗑️ ผู้ใช้ "${user}" ถูกลบแล้ว`);
-      // on('value') จะอัพเดต UI อัตโนมัติ
+  function loadAdminData() {
+    // โหลดผู้ใช้ออนไลน์
+    db.ref("activeUsers").on("value", snap => {
+      const ul = document.getElementById("userList");
+      ul.innerHTML = "";
+      snap.forEach(child => {
+        const v = child.val();
+        ul.innerHTML += `<li>${child.key} • ${v.ip || "??"} • ${v.ua || "??"}</li>`;
+      });
+    });
+
+    // โหลดผู้ใช้ทั้งหมด
+    db.ref("users").on("value", snap => {
+      const ul = document.getElementById("allUsersList");
+      ul.innerHTML = "";
+      snap.forEach(child => {
+        ul.innerHTML += `<li>${child.key}</li>`;
+      });
     });
   }
 
-  window.onload = () => {
-    loadUsers();
+  function kickByIP() {
+    const ip = document.getElementById("kickIP").value.trim();
+    if (!ip) return alert("ใส่ IP");
 
-    const loggedUser = checkLoginTimeout();
-    if (loggedUser) {
-      afterLogin(loggedUser);
-    } else {
-      clearLogin();
+    db.ref("activeUsers").once("value", snap => {
+      let kickedCount = 0;
+      snap.forEach(child => {
+        const v = child.val();
+        if (v.ip === ip) {
+          db.ref("activeUsers/" + child.key + "/kicked").set(true);
+          kickedCount++;
+        }
+      });
+      if (kickedCount > 0) alert(`เตะผู้ใช้ที่ IP ${ip} สำเร็จ!`);
+      else alert(`ไม่พบผู้ใช้ที่ IP ${ip}`);
+    });
+  }
+
+  window.onload = async () => {
+    const user = localStorage.getItem("sessionUser");
+    const time = parseInt(localStorage.getItem("sessionTime") || "0");
+    if (user && Date.now() - time <= SESSION_MAX) {
+      document.getElementById("username").value = user;
+      // password ไม่เก็บ localStorage เพราะเซฟรหัสผ่านไม่ได้ใน DB เลยต้องกรอกใหม่
+      await login();
     }
   };
 
-  window.addEventListener('beforeunload', () => {
+  window.addEventListener("beforeunload", () => {
     if (currentUser) {
-      db.ref('activeUsers/' + currentUser).remove();
+      db.ref("activeUsers/" + sanitizeKey(currentUser)).remove();
     }
   });
 </script>
