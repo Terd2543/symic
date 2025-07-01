@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>🌈 Dashboard with Auto-login & Account Tab</title>
+  <title>🌈 Dashboard with IP Ban System</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
@@ -70,7 +70,13 @@
     }
     ul { list-style: none; padding-left: 0; }
     ul li::before { content: "🟢 "; }
-    #kickIP { width: 200px; margin-right: 10px; }
+    #kickIP, #banIPInput {
+      width: 200px;
+      margin-right: 10px;
+    }
+    .ban-section button {
+      margin-right: 10px;
+    }
   </style>
 </head>
 <body>
@@ -121,6 +127,13 @@ int main() {
       <h4>🦶 เตะผู้ใช้โดย IP:</h4>
       <input id="kickIP" placeholder="ใส่ IP เช่น 1.2.3.4" />
       <button onclick="kickByIP()">เตะ!</button>
+
+      <h4 class="ban-section" style="margin-top:20px;">
+        🔨 แบน IP:
+        <input id="banIPInput" placeholder="ใส่ IP ที่จะแบน" />
+        <button onclick="banIP()">แบน IP</button>
+        <button onclick="unbanIP()">ปลดแบน IP</button>
+      </h4>
 
       <h4>🛠 จัดการรหัสผู้ใช้</h4>
       <input id="newUser" placeholder="ชื่อผู้ใช้" autocomplete="off"/>
@@ -188,16 +201,28 @@ int main() {
     return str.replace(/[.#$[\]]/g, "_");
   }
 
+  // เช็คว่า IP แบนอยู่ไหม
+  async function isIPBanned(ip) {
+    const snap = await db.ref("bannedIPs/" + sanitizeKey(ip)).get();
+    return snap.exists();
+  }
+
   async function login() {
     const user = document.getElementById("username").value.trim();
     const pass = document.getElementById("password").value.trim();
     if (!user || !pass) return alert("กรอกชื่อผู้ใช้และรหัส");
 
+    currentIP = await getIP();
+
+    if (await isIPBanned(currentIP)) {
+      alert("IP ของคุณถูกแบน ไม่สามารถเข้าสู่ระบบได้");
+      return;
+    }
+
     const snap = await db.ref("users/" + sanitizeKey(user)).get();
     if (!snap.exists() || snap.val() !== pass) return alert("ชื่อผู้ใช้หรือรหัสผ่านผิด");
 
     currentUser = user;
-    currentIP = await getIP();
     currentUA = detectUA();
 
     localStorage.setItem("sessionUser", user);
@@ -308,6 +333,20 @@ int main() {
       if (kickedCount > 0) alert(`เตะผู้ใช้ที่ IP ${ip} สำเร็จ!`);
       else alert(`ไม่พบผู้ใช้ที่ IP ${ip}`);
     });
+  }
+
+  function banIP() {
+    const ip = document.getElementById("banIPInput").value.trim();
+    if (!ip) return alert("ใส่ IP ที่จะแบน");
+    db.ref("bannedIPs/" + sanitizeKey(ip)).set(true)
+      .then(() => alert(`แบน IP ${ip} เรียบร้อย`));
+  }
+
+  function unbanIP() {
+    const ip = document.getElementById("banIPInput").value.trim();
+    if (!ip) return alert("ใส่ IP ที่จะปลดแบน");
+    db.ref("bannedIPs/" + sanitizeKey(ip)).remove()
+      .then(() => alert(`ปลดแบน IP ${ip} เรียบร้อย`));
   }
 
   window.onload = async () => {
