@@ -2,239 +2,359 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>🌈 Firebase Login Dashboard</title>
+  <title>🌈 Firebase Login Tracker + Kick by IP</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code&display=swap');
+    * { box-sizing: border-box; }
+
     body {
-      font-family: monospace;
-      background: #111;
-      color: #fff;
       margin: 0;
-      padding: 20px;
+      font-family: 'Fira Code', monospace;
+      background: linear-gradient(270deg, #ff0080, #7928ca, #00c6ff, #ffcc70);
+      background-size: 400% 400%;
+      animation: rainbowFlow 20s ease infinite;
+      color: white;
     }
+
+    @keyframes rainbowFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
     .box {
-      max-width: 800px;
-      margin: auto;
-      background: #222;
-      padding: 20px;
-      border-radius: 10px;
+      max-width: 900px;
+      margin: 50px auto;
+      background: rgba(0, 0, 0, 0.85);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
     }
-    input, button {
-      padding: 8px;
-      margin: 5px;
-      border-radius: 6px;
+
+    input, button, textarea {
+      font-family: 'Fira Code', monospace;
+      padding: 10px;
       border: none;
-      font-family: monospace;
+      border-radius: 8px;
+      font-size: 1em;
+      margin: 5px 0;
     }
+
     button {
-      background: #0ff;
-      color: #000;
+      background: #00ffe1;
+      color: black;
+      font-weight: bold;
       cursor: pointer;
     }
-    .danger { background: red; color: white; }
-    ul { padding-left: 20px; }
-    li { margin-bottom: 5px; }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      background: #ffffff22;
+      color: white;
+    }
+
+    .tab-btn.active {
+      background: #00ffe1;
+      color: black;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    pre {
+      background: #272822;
+      padding: 20px;
+      border-radius: 10px;
+      overflow-x: auto;
+      margin-top: 20px;
+    }
+
+    ul { list-style: none; padding-left: 0; }
+    ul li::before { content: "🟢 "; }
+
+    #kickIP { width: 200px; margin-right: 10px; }
+
+    textarea {
+      width: 100%;
+      resize: vertical;
+    }
   </style>
 </head>
 <body>
 
 <div class="box" id="loginBox">
-  <h2>🔐 Login</h2>
-  <input id="username" placeholder="ชื่อผู้ใช้">
-  <input id="password" type="password" placeholder="รหัสผ่าน">
+  <h2>🔐 เข้าสู่ระบบ</h2>
+  <input type="text" id="username" placeholder="ชื่อผู้ใช้" autocomplete="off" />
+  <input type="password" id="password" placeholder="รหัสผ่าน" autocomplete="off" />
   <button onclick="login()">Login</button>
 </div>
 
 <div class="box" id="mainApp" style="display:none;">
-  <h3>✅ ยินดีต้อนรับ: <span id="userDisplay"></span></h3>
-  <div id="adminOnly" style="display:none;">
-    <h4>🟢 ผู้ใช้ออนไลน์</h4>
-    <ul id="userList"></ul>
+  <h2>🌈 ยินดีต้อนรับ <span id="userDisplay"></span></h2>
 
-    <h4>🦶 เตะผู้ใช้ (ใส่ IP):</h4>
-    <input id="kickIP" placeholder="IP เช่น 1.2.3.4">
-    <button onclick="kickByIP()">เตะ</button>
-
-    <h4>🚫 แบน IP:</h4>
-    <input id="banIP" placeholder="IP เช่น 1.2.3.4">
-    <button onclick="banIP()">แบน</button>
-
-    <h4>✅ ปลดแบน IP:</h4>
-    <input id="unbanIP" placeholder="IP ที่จะปลดแบน">
-    <button onclick="unbanIP()">ปลดแบน</button>
-
-    <h4>🔁 รีเฟรชรายการแบน/เตะ</h4>
-    <button onclick="loadAdminData()">รีเฟรช</button>
-
-    <h4>📋 ผู้ใช้ทั้งหมด</h4>
-    <ul id="allUsersList"></ul>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab(0)">Home</button>
+    <button class="tab-btn" onclick="showTab(1)">Code</button>
+    <button class="tab-btn" onclick="showTab(2)">About</button>
+    <button class="tab-btn" onclick="showTab(3)">Admin</button>
   </div>
-  <button onclick="logout()" class="danger">Logout</button>
+
+  <div class="tab-content active">
+    <p>👋 สวัสดีผู้ใช้</p>
+  </div>
+
+  <div class="tab-content">
+    <h3>🚀 โค้ด C: หาค่าเฉลี่ย</h3>
+    <pre><code class="language-c">
+#include &lt;stdio.h&gt;
+
+int main() {
+  float a, b, c;
+  scanf("%f %f %f", &a, &b, &c);
+  printf("Avg = %.2f", (a + b + c) / 3);
+}
+    </code></pre>
+
+    <div id="adminCodeOnly" style="display:none;">
+      <h4>📝 โพสต์โค้ดภาษา C</h4>
+      <textarea id="codeInput" rows="6" placeholder="ใส่โค้ดภาษา C ที่นี่..."></textarea>
+      <button onclick="postCode()">📤 โพสต์โค้ด</button>
+    </div>
+    <div id="postedCode"></div>
+  </div>
+
+  <div class="tab-content">
+    <p>📚 สร้างโดย เติ้ด1/10 เพื่อฝึกทำเว็บ ✨</p>
+  </div>
+
+  <div class="tab-content">
+    <div id="adminOnly" style="display:none;">
+      <h4>🧠 ผู้ใช้ที่ออนไลน์ (ชื่อ • IP • อุปกรณ์)</h4>
+      <ul id="userList"></ul>
+
+      <h4>🦶 เตะผู้ใช้โดย IP:</h4>
+      <input id="kickIP" placeholder="ใส่ IP เช่น 1.2.3.4" />
+      <button onclick="kickByIP()">เตะ!</button>
+
+      <h4>🛠 จัดการรหัสผู้ใช้</h4>
+      <input id="newUser" placeholder="ชื่อผู้ใช้" />
+      <input id="newPass" placeholder="รหัสผ่าน" />
+      <button onclick="addUser()">➕ เพิ่ม/แก้ไข</button>
+      <button onclick="deleteUser()">🗑 ลบ</button>
+
+      <h4>📋 รายชื่อผู้ใช้ทั้งหมด</h4>
+      <ul id="allUsersList"></ul>
+    </div>
+    <button onclick="logout()" style="margin-top:20px; background:#ff4444; color:white;">ออกจากระบบ</button>
+  </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/c.min.js"></script>
+<script>hljs.highlightAll();</script>
+
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyD40kcFdCmRm6Zd_kTpU9lT1-HLmStzYhA",
-  authDomain: "symic-d7196.firebaseapp.com",
-  databaseURL: "https://symic-d7196-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "symic-d7196",
-  storageBucket: "symic-d7196.appspot.com",
-  messagingSenderId: "835880076541",
-  appId: "1:835880076541:web:4a6816fb52ff91ae1c2a94"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+  const firebaseConfig = {
+    apiKey: "AIzaSyD40kcFdCmRm6Zd_kTpU9lT1-HLmStzYhA",
+    authDomain: "symic-d7196.firebaseapp.com",
+    databaseURL: "https://symic-d7196-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "symic-d7196",
+    storageBucket: "symic-d7196.appspot.com",
+    messagingSenderId: "835880076541",
+    appId: "1:835880076541:web:4a6816fb52ff91ae1c2a94"
+  };
 
-const ADMIN_PASS = "pik";
-let currentUser = null;
-let currentIP = null;
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-function sanitize(str) {
-  return str.replace(/[.#$[\]]/g, "_");
-}
+  const ADMIN_PASS = "pik";
+  const SESSION_MAX = 15 * 24 * 60 * 60 * 1000;
 
-async function getIP() {
-  try {
-    const res = await fetch("https://www.cloudflare.com/cdn-cgi/trace");
-    const txt = await res.text();
-    return txt.match(/ip=([^\n]+)/)?.[1] || "unknown";
-  } catch {
-    return "unknown";
-  }
-}
+  let currentUser = null;
+  let currentIP = null;
+  let currentUA = null;
 
-function getUA() {
-  const ua = navigator.userAgent;
-  if (/iPhone/i.test(ua)) return "iPhone";
-  if (/Android/i.test(ua)) return "Android";
-  return ua;
-}
-
-async function login() {
-  const u = document.getElementById("username").value.trim();
-  const p = document.getElementById("password").value.trim();
-  if (!u || !p) return alert("กรอกให้ครบ");
-
-  const snap = await db.ref("users/" + sanitize(u)).get();
-  if (!snap.exists() || snap.val() !== p) return alert("ชื่อหรือรหัสผิด");
-
-  currentIP = await getIP();
-  const ua = getUA();
-
-  // เช็คแบน
-  const banned = await db.ref("bannedIPs/" + sanitize(currentIP)).get();
-  if (banned.exists()) return alert("IP นี้ถูกแบน");
-
-  currentUser = u;
-  localStorage.setItem("user", u);
-  localStorage.setItem("time", Date.now());
-
-  await db.ref("activeUsers/" + sanitize(u)).set({
-    ip: currentIP,
-    ua: ua,
-    time: Date.now(),
-    kicked: false
-  });
-
-  document.getElementById("userDisplay").textContent = u;
-  document.getElementById("loginBox").style.display = "none";
-  document.getElementById("mainApp").style.display = "block";
-
-  if (p === ADMIN_PASS) {
-    document.getElementById("adminOnly").style.display = "block";
-    loadAdminData();
-  }
-
-  // เตะถ้าถูก flag
-  db.ref("activeUsers/" + sanitize(u) + "/kicked").on("value", snap => {
-    if (snap.val() === true) {
-      alert("คุณถูกเตะออก!");
-      logout();
+  async function getIP() {
+    try {
+      const res = await fetch("https://www.cloudflare.com/cdn-cgi/trace");
+      const text = await res.text();
+      return text.match(/ip=([^\n]+)/)?.[1] || "unknown";
+    } catch {
+      return "unknown";
     }
-  });
-}
-
-function logout() {
-  if (currentUser) {
-    db.ref("activeUsers/" + sanitize(currentUser)).remove();
-    currentUser = null;
-    localStorage.clear();
   }
-  document.getElementById("mainApp").style.display = "none";
-  document.getElementById("loginBox").style.display = "block";
-}
 
-function kickByIP() {
-  const ip = document.getElementById("kickIP").value.trim();
-  if (!ip) return alert("กรอก IP");
+  function detectUA() {
+    const ua = navigator.userAgent;
+    if (/\b(iPhone)\b/i.test(ua)) return "iPhone";
+    if (/\b(Android)\b/i.test(ua)) return "Android";
+    return ua;
+  }
 
-  db.ref("activeUsers").once("value", snap => {
-    snap.forEach(c => {
-      const v = c.val();
-      if (v.ip === ip && c.key !== sanitize("admin")) {
-        db.ref("activeUsers/" + c.key + "/kicked").set(true);
+  function sanitizeKey(str) {
+    return str.replace(/[.#$[\]]/g, "_");
+  }
+
+  async function login() {
+    const user = document.getElementById("username").value.trim();
+    const pass = document.getElementById("password").value.trim();
+    if (!user || !pass) return alert("กรอกชื่อผู้ใช้และรหัส");
+
+    const snap = await db.ref("users/" + sanitizeKey(user)).get();
+    if (!snap.exists() || snap.val() !== pass) return alert("ชื่อผู้ใช้หรือรหัสผ่านผิด");
+
+    currentUser = user;
+    currentIP = await getIP();
+    currentUA = detectUA();
+
+    localStorage.setItem("sessionUser", user);
+    localStorage.setItem("sessionTime", Date.now().toString());
+    localStorage.setItem("sessionPass", pass);
+
+    db.ref("activeUsers/" + sanitizeKey(user)).set({
+      ip: currentIP,
+      ua: currentUA,
+      time: Date.now(),
+      kicked: false
+    });
+
+    document.getElementById("userDisplay").textContent = user;
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("mainApp").style.display = "block";
+
+    if (pass === ADMIN_PASS) {
+      document.getElementById("adminOnly").style.display = "block";
+      document.getElementById("adminCodeOnly").style.display = "block";
+      loadAdminData();
+      loadAdminCode();
+    }
+
+    db.ref("activeUsers/" + sanitizeKey(user) + "/kicked").on("value", snap => {
+      if (snap.val() === true) {
+        alert("คุณถูกเตะออก!");
+        logout();
       }
     });
-    alert("เตะสำเร็จ");
-  });
-}
-
-function banIP() {
-  const ip = document.getElementById("banIP").value.trim();
-  if (!ip) return alert("ใส่ IP");
-
-  if (ip === currentIP && currentUser === "admin") {
-    return alert("ห้ามแบนตัวเอง!");
   }
 
-  db.ref("bannedIPs/" + sanitize(ip)).set(true);
-  alert("แบนเรียบร้อย");
-}
-
-function unbanIP() {
-  const ip = document.getElementById("unbanIP").value.trim();
-  if (!ip) return alert("ใส่ IP");
-
-  db.ref("bannedIPs/" + sanitize(ip)).remove();
-  alert("ปลดแบนแล้ว");
-}
-
-function loadAdminData() {
-  db.ref("activeUsers").once("value", snap => {
-    const ul = document.getElementById("userList");
-    ul.innerHTML = "";
-    snap.forEach(c => {
-      const v = c.val();
-      ul.innerHTML += `<li>${c.key} • ${v.ip || "?"} • ${v.ua || "?"}</li>`;
-    });
-  });
-
-  db.ref("users").once("value", snap => {
-    const ul = document.getElementById("allUsersList");
-    ul.innerHTML = "";
-    snap.forEach(c => {
-      ul.innerHTML += `<li>${c.key}</li>`;
-    });
-  });
-}
-
-window.onload = async () => {
-  const u = localStorage.getItem("user");
-  const t = parseInt(localStorage.getItem("time") || "0");
-  if (u && Date.now() - t < 7 * 24 * 60 * 60 * 1000) {
-    document.getElementById("username").value = u;
-    const snap = await db.ref("users/" + sanitize(u)).get();
-    if (snap.exists()) {
-      document.getElementById("password").value = snap.val();
-      login();
+  function logout() {
+    if (currentUser) {
+      db.ref("activeUsers/" + sanitizeKey(currentUser)).remove();
+      currentUser = null;
+      localStorage.clear();
     }
+    document.getElementById("mainApp").style.display = "none";
+    document.getElementById("loginBox").style.display = "block";
   }
-};
 
-window.addEventListener("beforeunload", () => {
-  if (currentUser) db.ref("activeUsers/" + sanitize(currentUser)).remove();
-});
+  function showTab(i) {
+    document.querySelectorAll(".tab-content").forEach((e, j) => e.classList.toggle("active", i === j));
+    document.querySelectorAll(".tab-btn").forEach((e, j) => e.classList.toggle("active", i === j));
+  }
+
+  function addUser() {
+    const user = document.getElementById("newUser").value.trim();
+    const pass = document.getElementById("newPass").value.trim();
+    if (!user || !pass) return alert("กรอกข้อมูลให้ครบ");
+    db.ref("users/" + sanitizeKey(user)).set(pass);
+    alert("บันทึกเรียบร้อย");
+  }
+
+  function deleteUser() {
+    const user = document.getElementById("newUser").value.trim();
+    if (!user) return alert("ใส่ชื่อผู้ใช้ที่ต้องการลบ");
+    db.ref("users/" + sanitizeKey(user)).remove();
+    alert("ลบเรียบร้อย");
+  }
+
+  function loadAdminData() {
+    db.ref("activeUsers").on("value", snap => {
+      const ul = document.getElementById("userList");
+      ul.innerHTML = "";
+      snap.forEach(child => {
+        const v = child.val();
+        ul.innerHTML += `<li>${child.key} • ${v.ip || "??"} • ${v.ua || "??"}</li>`;
+      });
+    });
+
+    db.ref("users").on("value", snap => {
+      const ul = document.getElementById("allUsersList");
+      ul.innerHTML = "";
+      snap.forEach(child => {
+        ul.innerHTML += `<li>${child.key}</li>`;
+      });
+    });
+  }
+
+  function kickByIP() {
+    const ip = document.getElementById("kickIP").value.trim();
+    if (!ip) return alert("ใส่ IP");
+    db.ref("activeUsers").once("value", snap => {
+      let kicked = 0;
+      snap.forEach(child => {
+        const v = child.val();
+        if (v.ip === ip) {
+          db.ref("activeUsers/" + child.key + "/kicked").set(true);
+          kicked++;
+        }
+      });
+      alert(kicked ? `เตะ ${kicked} คนจาก IP นี้แล้ว` : "ไม่พบ IP นี้");
+    });
+  }
+
+  function postCode() {
+    const code = document.getElementById("codeInput").value.trim();
+    if (!code) return alert("ใส่โค้ดก่อนโพสต์");
+    db.ref("adminCode").set(code);
+    alert("โพสต์โค้ดแล้ว!");
+  }
+
+  function loadAdminCode() {
+    db.ref("adminCode").on("value", snap => {
+      const code = snap.val();
+      const target = document.getElementById("postedCode");
+      if (code) {
+        target.innerHTML = `<h4>📦 โค้ดที่โพสต์ไว้:</h4><pre><code class="language-c">${escapeHtml(code)}</code></pre>`;
+        hljs.highlightAll();
+      } else {
+        target.innerHTML = "";
+      }
+    });
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;");
+  }
+
+  window.onload = async () => {
+    const user = localStorage.getItem("sessionUser");
+    const time = parseInt(localStorage.getItem("sessionTime") || "0");
+    const pass = localStorage.getItem("sessionPass");
+    if (user && pass && Date.now() - time <= SESSION_MAX) {
+      document.getElementById("username").value = user;
+      document.getElementById("password").value = pass;
+      await login();
+    }
+  };
+
+  window.addEventListener("beforeunload", () => {
+    if (currentUser) {
+      db.ref("activeUsers/" + sanitizeKey(currentUser)).remove();
+    }
+  });
 </script>
+
 </body>
 </html>
