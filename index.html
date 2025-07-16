@@ -121,13 +121,19 @@
 #include <stdio.h>
 main()
 {
-    float point;
-    printf("Enter your examination points : ");
-    scanf("%f",&point);
-    if (point>=50) {
-    printf("You passed, Congratulations\n");
-    printf("Good \n");}
-    printf("**************");
+
+    int number;
+    printf("Enter enter number : ");
+    scanf("%d",&number);
+    if (number % 2==0) {
+        printf("This number is even number\n");
+
+    } else {
+
+        printf("This number is odd number\n");
+
+    }
+    printf("*****End Program******");
     return 0;
 }
     </code></pre>
