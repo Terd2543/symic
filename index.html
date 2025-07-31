@@ -119,21 +119,38 @@
 #include &lt;stdio.h&gt;
 //nattawat m.1/10 no 8
 #include <stdio.h>
-main()
-{
 
-    int number;
-    printf("Enter enter number : ");
-    scanf("%d",&number);
-    if (number % 2==0) {
-        printf("This number is even number\n");
+int main() {
+    int menu;
+    float wight, height, side1, side2;
+    float area;
 
-    } else {
+    printf("This program calculates the area of a square or a triangle.\n");
+    printf("1. Square\n");
+    printf("2. Triangle\n");
+    printf("Select an option (1 or 2): ");
+    scanf("%d", &menu);
 
-        printf("This number is odd number\n");
-
+    switch (menu) {
+        case 1:
+            printf("You selected Square.\n");
+            printf("Enter the length of two sides: ");
+            scanf("%f %f", &side1, &side2);
+            area = side1 * side2;
+            printf("The area of the square is: %.2f\n", area);
+            break;
+        case 2:
+            printf("You selected Triangle.\n");
+            printf("Enter the base and height: ");
+            scanf("%f %f", &wight, &height);
+            area = 0.5 * wight * height;
+            printf("The area of the triangle is: %.2f\n", area);
+            break;
+        default:
+            printf("Invalid selection. Please choose 1 or 2.\n");
+            break;
     }
-    printf("*****End Program******");
+
     return 0;
 }
     </code></pre>
